@@ -1,0 +1,22 @@
+# Node
+node_modules/
+dist/
+.vercel/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Env
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Reference media (too large for git, kept local only)
+*.mp4

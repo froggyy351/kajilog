@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>カジログ - 家事の負担をみえる化して平和な家庭を</title>
+<style>
+  :root{
+    --kenta:#2a78d6;
+    --misaki:#eb6834;
+    --surface-1:#fcfcfb;
+    --page:#f9f9f7;
+    --text-primary:#0b0b0b;
+    --text-secondary:#52514e;
+    --muted:#898781;
+    --gridline:#e1e0d9;
+    --baseline:#c3c2b7;
+    --border:rgba(11,11,11,0.10);
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--page);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text-primary);margin:0;}
+  .app{max-width:1240px;margin:0 auto;padding:20px 20px 60px;}
+
+  header.app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+  .brand h1{margin:0;font-size:23px;letter-spacing:.01em;}
+  .brand p{margin:3px 0 0;color:var(--text-secondary);font-size:13px;}
+  .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .user-toggle{display:flex;gap:4px;background:var(--surface-1);padding:4px;border-radius:999px;border:1px solid var(--border);}
+  .user-toggle button{border:none;background:transparent;padding:8px 18px;border-radius:999px;font-weight:600;cursor:pointer;color:var(--text-secondary);font-size:14px;transition:background .15s,color .15s;}
+  .user-toggle button.active{color:#fff;}
+  .user-toggle button.active[data-user="健太"]{background:var(--kenta);}
+  .user-toggle button.active[data-user="美咲"]{background:var(--misaki);}
+  .reset-btn{border:1px solid var(--border);background:var(--surface-1);color:var(--text-secondary);padding:9px 14px;border-radius:8px;cursor:pointer;font-size:13px;}
+  .reset-btn:hover{background:var(--gridline);}
+
+  .main-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:16px;align-items:start;}
+  @media (max-width:980px){ .main-grid{grid-template-columns:1fr;} }
+
+  .card{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(11,11,11,0.04);margin-bottom:16px;}
+  .card h2{margin:0 0 4px;font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+  .card .subtitle{margin:0 0 14px;font-size:12.5px;color:var(--text-secondary);}
+
+  .iso-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);cursor:pointer;user-select:none;font-weight:400;}
+
+  .floor-wrap{perspective:1400px;padding:6px 6px 26px;}
+  .floor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:14px;transition:transform .35s ease;transform-origin:top center;}
+  .floor-grid.iso{transform:rotateX(26deg) scale(0.98);}
+  .room-card{background:var(--page);border:1px solid var(--gridline);border-radius:10px;padding:10px;transition:box-shadow .35s;}
+  .floor-grid.iso .room-card{box-shadow:0 16px 20px -12px rgba(11,11,11,0.28);}
+  .room-name{font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;display:flex;align-items:center;gap:4px;}
+  .tag-btn{width:100%;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;cursor:pointer;font-size:12.5px;text-align:left;transition:transform .12s,border-color .12s;}
+  .tag-btn:last-child{margin-bottom:0;}
+  .tag-btn:hover{border-color:var(--kenta);}
+  .tag-btn:active,.tag-btn.tapped{transform:scale(0.93);}
+  .tag-btn .icon{font-size:18px;}
+  .tag-btn .name{flex:1;}
+  .tag-btn .weight{color:var(--muted);font-size:10.5px;background:var(--gridline);border-radius:999px;padding:1px 7px;flex-shrink:0;}
+
+  .toast-container{position:fixed;top:16px;right:16px;display:flex;flex-direction:column;gap:8px;z-index:50;}
+  .toast{background:var(--text-primary);color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,0.25);animation:toast-in .25s ease-out;max-width:300px;}
+  @keyframes toast-in{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+  .toast.out{animation:toast-out .25s ease-in forwards;}
+  @keyframes toast-out{to{opacity:0;transform:translateY(-8px);}}
+
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--text-secondary);margin-bottom:14px;}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
+  .dot.kenta{background:var(--kenta);} .dot.misaki{background:var(--misaki);}
+
+  .insight{background:#fff8ee;border:1px solid #eddcc0;color:#6b4d17;font-size:12.5px;padding:10px 12px;border-radius:8px;margin-bottom:16px;line-height:1.5;}
+
+  .stat-block{margin-bottom:18px;}
+  .stat-block h3{margin:0 0 8px;font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;}
+  .bar-row .name{width:44px;flex-shrink:0;color:var(--text-secondary);}
+  .bar-track{flex:1;background:var(--gridline);border-radius:4px;height:16px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+  .bar-fill.kenta{background:var(--kenta);} .bar-fill.misaki{background:var(--misaki);}
+  .bar-value{width:60px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;flex-shrink:0;}
+
+  .week-chart{display:flex;align-items:flex-end;gap:10px;height:130px;padding-top:10px;border-bottom:1px solid var(--baseline);}
+  .week-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .week-bars{display:flex;gap:3px;align-items:flex-end;height:100%;}
+  .week-bar{width:13px;border-radius:3px 3px 0 0;min-height:1px;}
+  .week-bar.kenta{background:var(--kenta);} .week-bar.misaki{background:var(--misaki);}
+  .week-label{font-size:10.5px;color:var(--muted);margin-top:6px;text-align:center;}
+
+  .cat-row{margin-bottom:10px;}
+  .cat-label{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--text-secondary);margin-bottom:4px;}
+  .cat-label .name{display:flex;align-items:center;gap:5px;}
+  .cat-track{display:flex;height:12px;border-radius:3px;overflow:hidden;background:var(--gridline);}
+  .cat-seg{height:100%;}
+  .cat-seg.kenta{background:var(--kenta);} .cat-seg.misaki{background:var(--misaki);}
+  .cat-gap{width:2px;background:var(--surface-1);flex-shrink:0;}
+
+  .history-list{max-height:380px;overflow-y:auto;}
+  .history-day{font-size:11px;color:var(--muted);font-weight:700;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em;}
+  .history-day:first-child{margin-top:0;}
+  .history-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--gridline);font-size:13px;}
+  .history-row:last-child{border-bottom:none;}
+  .history-row .icon{font-size:17px;width:20px;text-align:center;flex-shrink:0;}
+  .history-row .who{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .history-row .who.kenta{background:var(--kenta);} .history-row .who.misaki{background:var(--misaki);}
+  .history-row .desc{flex:1;min-width:0;}
+  .history-row .desc .room{color:var(--muted);font-size:11px;}
+  .history-row .time{color:var(--muted);font-size:11.5px;width:44px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+  .history-row .pts{font-weight:700;font-variant-numeric:tabular-nums;width:40px;text-align:right;color:var(--text-secondary);flex-shrink:0;}
+
+  footer.app-footer{text-align:center;color:var(--muted);font-size:11.5px;margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="app">
+  <header class="app-header">
+    <div class="brand">
+      <h1>🏷️ カジログ</h1>
+      <p>家事の負担をみえる化して、平和な家庭を。</p>
+    </div>
+    <div class="header-right">
+      <div class="user-toggle" id="userToggle">
+        <button data-user="健太">健太</button>
+        <button data-user="美咲">美咲</button>
+      </div>
+      <button class="reset-btn" id="resetBtn">↺ デモデータをリセット</button>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <div>
+      <div class="card">
+        <h2>
+          🏠 お部屋でタッチして記録
+          <label class="iso-toggle"><input type="checkbox" id="isoToggle" checked> 3Dビュー</label>
+        </h2>
+        <p class="subtitle">今アプリを操作しているのは <b id="activeUserLabel">健太</b> さん。タグにタッチすると、その場でノータッチ入力が完了します。</p>
+        <div class="floor-wrap">
+          <div class="floor-grid iso" id="floorGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>📊 貢献度ダッシュボード</h2>
+        <div class="legend">
+          <span><i class="dot kenta"></i>健太</span>
+          <span><i class="dot misaki"></i>美咲</span>
+        </div>
+        <div class="insight" id="insightBox"></div>
+
+        <div class="stat-block">
+          <h3>件数（実施回数）</h3>
+          <div class="bar-row">
+            <span class="name">健太</span>
+            <div class="bar-track"><div class="bar-fill kenta" id="countBarKenta" style="width:0%"></div></div>
+            <span class="bar-value" id="countValKenta">0</span>
+          </div>
+          <div class="bar-row">
+            <span class="name">美咲</span>
+            <div class="bar-track"><div class="bar-fill misaki" id="countBarMisaki" style="width:0%"></div></div>
+            <span class="bar-value" id="countValMisaki">0</span>
+          </div>
+        </div>
+
+        <div class="stat-block">
+          <h3>ポイント（重み付き貢献度）</h3>
+          <div class="bar-row">
+            <span class="name">健太</span>
+            <div class="bar-track"><div class="bar-fill kenta" id="ptsBarKenta" style="width:0%"></div></div>
+            <span class="bar-value" id="ptsValKenta">0</span>
+          </div>
+          <div class="bar-row">
+            <span class="name">美咲</span>
+            <div class="bar-track"><div class="bar-fill misaki" id="ptsBarMisaki" style="width:0%"></div></div>
+            <span class="bar-value" id="ptsValMisaki">0</span>
+          </div>
+        </div>
+
+        <div class="stat-block">
+          <h3>直近7日間のポイント推移</h3>
+          <div class="week-chart" id="weekChart"></div>
+        </div>
+
+        <div class="stat-block" style="margin-bottom:0;">
+          <h3>家事カテゴリ別ポイント内訳</h3>
+          <div id="catBreakdown"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:0;">
+        <h2>🕒 家事履歴</h2>
+        <p class="subtitle">忙しい時期があっても、積み上げた記録は消えません。</p>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">プロトタイプ版 — NFCタッチはボタンクリックでシミュレートしています</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Data model ----------
+  var CHORES = [
+    { id:'toilet',       name:'トイレ掃除',     room:'トイレ',   weight:8, icon:'🚽' },
+    { id:'bath',         name:'お風呂掃除',     room:'浴室',     weight:7, icon:'🛁' },
+    { id:'cook',         name:'料理',           room:'キッチン', weight:8, icon:'🍳' },
+    { id:'dish',         name:'皿洗い',         room:'キッチン', weight:3, icon:'🍽️' },
+    { id:'sink',         name:'シンク磨き',     room:'キッチン', weight:2, icon:'🧽' },
+    { id:'hood',         name:'換気扇掃除',     room:'キッチン', weight:9, icon:'🌀' },
+    { id:'vacuum',       name:'掃除機がけ',     room:'リビング', weight:6, icon:'🧹' },
+    { id:'laundry_wash', name:'洗濯',           room:'洗面所',   weight:2, icon:'🧺' },
+    { id:'laundry_fold', name:'洗濯物たたみ',   room:'寝室',     weight:1, icon:'👕' },
+    { id:'trash',        name:'ゴミ出し',       room:'玄関',     weight:2, icon:'🗑️' }
+  ];
+  var CHORE_MAP = {};
+  CHORES.forEach(function(c){ CHORE_MAP[c.id] = c; });
+
+  var ROOM_ORDER = ['玄関','リビング','キッチン','洗面所','浴室','トイレ','寝室'];
+  var ROOM_ICON = { '玄関':'🚪','リビング':'🛋️','キッチン':'🍴','洗面所':'🚰','浴室':'🛁','トイレ':'🚽','寝室':'🛏️' };
+
+  var PEOPLE = ['健太','美咲'];
+  var STORAGE_KEY = 'kajilog.records.v1';
+  var USER_KEY = 'kajilog.activeUser';
+
+  // ---------- Deterministic PRNG for seed data ----------
+  function mulberry32(a){
+    return function(){
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  var DAY_FREQ = {
+    toilet:0.5, bath:0.55, cook:1.0, vacuum:0.5, dish:1.4,
+    sink:0.6, laundry_wash:0.45, laundry_fold:0.6, trash:0.5, hood:0.15
+  };
+  var BIAS_KENTA = {
+    toilet:0.92, bath:0.88, cook:0.35, vacuum:0.9, dish:0.1,
+    sink:0.1, laundry_wash:0.25, laundry_fold:0.08, trash:0.8, hood:0.92
+  };
+
+  function genSeedRecords(seedNum, days){
+    var rnd = mulberry32(seedNum);
+    var records = [];
+    var now = new Date();
+    var idCounter = 1;
+    for (var d = days - 1; d >= 0; d--){
+      var dayDate = new Date(now.getTime() - d * 86400000);
+      var busyFactor = d <= 6 ? 0.55 : 1.0; // 健太 was busy with work this past week
+      for (var i = 0; i < CHORES.length; i++){
+        var chore = CHORES[i];
+        var freq = DAY_FREQ[chore.id];
+        var occurrences = Math.floor(freq);
+        if (rnd() < (freq - occurrences)) occurrences++;
+        for (var j = 0; j < occurrences; j++){
+          var kentaBias = BIAS_KENTA[chore.id] * busyFactor;
+          var person = rnd() < kentaBias ? '健太' : '美咲';
+          var hour = 7 + Math.floor(rnd() * 15);
+          var min = Math.floor(rnd() * 60);
+          var ts = new Date(dayDate);
+          ts.setHours(hour, min, 0, 0);
+          records.push({ id:'seed-' + (idCounter++), choreId:chore.id, person:person, ts:ts.getTime() });
+        }
+      }
+    }
+    records.sort(function(a,b){ return a.ts - b.ts; });
+    return records;
+  }
+
+  // ---------- Persistence ----------
+  function loadRecords(){
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === null){
+      var seeded = genSeedRecords(42, 14);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+      return seeded;
+    }
+    try { return JSON.parse(raw) || []; } catch(e){ return []; }
+  }
+  function saveRecords(records){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  }
+
+  var state = {
+    records: loadRecords(),
+    activeUser: localStorage.getItem(USER_KEY) || '健太'
+  };
+
+  // ---------- Helpers ----------
+  function startOfDay(ts){
+    var d = new Date(ts);
+    d.setHours(0,0,0,0);
+    return d.getTime();
+  }
+  function fmtTime(ts){
+    var d = new Date(ts);
+    var h = d.getHours(), m = d.getMinutes();
+    return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+  }
+  function fmtDayLabel(ts){
+    var d = new Date(ts);
+    var today = startOfDay(Date.now());
+    var day = startOfDay(ts);
+    var diff = Math.round((today - day) / 86400000);
+    var wd = ['日','月','火','水','木','金','土'][d.getDay()];
+    var md = (d.getMonth()+1) + '/' + d.getDate();
+    if (diff === 0) return '今日 ' + md + '(' + wd + ')';
+    if (diff === 1) return '昨日 ' + md + '(' + wd + ')';
+    return md + '(' + wd + ')';
+  }
+
+  function computeTotals(records){
+    var out = { '健太': {count:0, pts:0}, '美咲': {count:0, pts:0} };
+    records.forEach(function(r){
+      var chore = CHORE_MAP[r.choreId];
+      if (!chore || !out[r.person]) return;
+      out[r.person].count++;
+      out[r.person].pts += chore.weight;
+    });
+    return out;
+  }
+
+  function computeWeekly(records){
+    var days = [];
+    for (var d = 6; d >= 0; d--){
+      days.push(startOfDay(Date.now()) - d * 86400000);
+    }
+    var byDay = {};
+    days.forEach(function(day){ byDay[day] = { '健太':0, '美咲':0 }; });
+    records.forEach(function(r){
+      var day = startOfDay(r.ts);
+      if (byDay[day]){
+        var chore = CHORE_MAP[r.choreId];
+        if (chore) byDay[day][r.person] += chore.weight;
+      }
+    });
+    return days.map(function(day){ return { day:day, kenta:byDay[day]['健太'], misaki:byDay[day]['美咲'] }; });
+  }
+
+  function computeByCategory(records){
+    var out = {};
+    CHORES.forEach(function(c){ out[c.id] = { '健太':0, '美咲':0 }; });
+    records.forEach(function(r){
+      if (out[r.choreId]) out[r.choreId][r.person] += CHORE_MAP[r.choreId].weight;
+    });
+    return CHORES.map(function(c){
+      return { chore:c, kenta:out[c.id]['健太'], misaki:out[c.id]['美咲'], total:out[c.id]['健太']+out[c.id]['美咲'] };
+    }).sort(function(a,b){ return b.total - a.total; });
+  }
+
+  function insightText(totals){
+    var k = totals['健太'], m = totals['美咲'];
+    if (k.count === 0 && m.count === 0) return '💡 まだ記録がありません。お部屋のタグにタッチしてみましょう。';
+    var countLeader = k.count === m.count ? null : (k.count > m.count ? '健太' : '美咲');
+    var ptsLeader = k.pts === m.pts ? null : (k.pts > m.pts ? '健太' : '美咲');
+    if (countLeader && ptsLeader && countLeader !== ptsLeader){
+      return '💡 実施件数だけを見ると' + countLeader + 'さんが多く見えますが、家事ごとの負担の重さまで加味したポイントでは' + ptsLeader + 'さんが上回っています。件数の差だけでは、本当の貢献度は分かりません。';
+    }
+    if (countLeader && ptsLeader && countLeader === ptsLeader){
+      var countRatio = Math.max(k.count,m.count) / Math.max(1, Math.min(k.count,m.count));
+      var ptsRatio = Math.max(k.pts,m.pts) / Math.max(1, Math.min(k.pts,m.pts));
+      if (ptsRatio < countRatio - 0.15){
+        return '💡 ' + countLeader + 'さんが件数・ポイントともに多いですが、ポイントで見ると差はぐっと縮まります。負担の重い家事を、もう一方がしっかり引き受けているからです。';
+      }
+      return '💡 ' + countLeader + 'さんが件数・ポイントともにリードしています。';
+    }
+    return '💡 二人の貢献度は、件数・ポイントともにほぼ互角です。';
+  }
+
+  // ---------- Rendering: floor plan (static, built once) ----------
+  function renderFloorPlan(){
+    var grid = document.getElementById('floorGrid');
+    var byRoom = {};
+    ROOM_ORDER.forEach(function(r){ byRoom[r] = []; });
+    CHORES.forEach(function(c){ if (byRoom[c.room]) byRoom[c.room].push(c); });
+
+    var html = '';
+    ROOM_ORDER.forEach(function(room){
+      var chores = byRoom[room];
+      if (!chores.length) return;
+      html += '<div class="room-card"><div class="room-name">' + (ROOM_ICON[room]||'') + ' ' + room + '</div>';
+      chores.forEach(function(c){
+        html += '<button class="tag-btn" data-chore="' + c.id + '">' +
+          '<span class="icon">' + c.icon + '</span>' +
+          '<span class="name">' + c.name + '</span>' +
+          '<span class="weight">' + c.weight + 'pt</span>' +
+        '</button>';
+      });
+      html += '</div>';
+    });
+    grid.innerHTML = html;
+
+    grid.addEventListener('click', function(e){
+      var btn = e.target.closest('.tag-btn');
+      if (!btn) return;
+      recordTap(btn.getAttribute('data-chore'), btn);
+    });
+  }
+
+  // ---------- Rendering: dashboard ----------
+  function renderDashboard(){
+    var totals = computeTotals(state.records);
+    var maxCount = Math.max(totals['健太'].count, totals['美咲'].count, 1);
+    var maxPts = Math.max(totals['健太'].pts, totals['美咲'].pts, 1);
+
+    document.getElementById('countValKenta').textContent = totals['健太'].count;
+    document.getElementById('countValMisaki').textContent = totals['美咲'].count;
+    document.getElementById('countBarKenta').style.width = (totals['健太'].count / maxCount * 100) + '%';
+    document.getElementById('countBarMisaki').style.width = (totals['美咲'].count / maxCount * 100) + '%';
+
+    document.getElementById('ptsValKenta').textContent = totals['健太'].pts;
+    document.getElementById('ptsValMisaki').textContent = totals['美咲'].pts;
+    document.getElementById('ptsBarKenta').style.width = (totals['健太'].pts / maxPts * 100) + '%';
+    document.getElementById('ptsBarMisaki').style.width = (totals['美咲'].pts / maxPts * 100) + '%';
+
+    document.getElementById('insightBox').textContent = insightText(totals);
+
+    // weekly chart
+    var weekly = computeWeekly(state.records);
+    var weekMax = 1;
+    weekly.forEach(function(w){ weekMax = Math.max(weekMax, w.kenta, w.misaki); });
+    var weekHtml = '';
+    weekly.forEach(function(w){
+      var kh = Math.round(w.kenta / weekMax * 100);
+      var mh = Math.round(w.misaki / weekMax * 100);
+      var d = new Date(w.day);
+      var wd = ['日','月','火','水','木','金','土'][d.getDay()];
+      weekHtml += '<div class="week-col">' +
+        '<div class="week-bars">' +
+          '<div class="week-bar kenta" style="height:' + kh + '%" title="健太: ' + w.kenta + 'pt"></div>' +
+          '<div class="week-bar misaki" style="height:' + mh + '%" title="美咲: ' + w.misaki + 'pt"></div>' +
+        '</div>' +
+        '<div class="week-label">' + (d.getMonth()+1) + '/' + d.getDate() + '<br>' + wd + '</div>' +
+      '</div>';
+    });
+    document.getElementById('weekChart').innerHTML = weekHtml;
+
+    // category breakdown
+    var cats = computeByCategory(state.records);
+    var catMax = 1;
+    cats.forEach(function(c){ catMax = Math.max(catMax, c.total); });
+    var catHtml = '';
+    cats.forEach(function(c){
+      if (c.total === 0) return;
+      var widthPct = c.total / catMax * 100;
+      var kWidth = c.total ? (c.kenta / c.total * 100) : 0;
+      var mWidth = c.total ? (c.misaki / c.total * 100) : 0;
+      catHtml += '<div class="cat-row">' +
+        '<div class="cat-label"><span class="name">' + c.chore.icon + ' ' + c.chore.name + '</span><span>' + c.total + 'pt</span></div>' +
+        '<div class="cat-track" style="width:' + widthPct + '%">' +
+          '<div class="cat-seg kenta" style="width:' + kWidth + '%"></div>' +
+          (c.kenta && c.misaki ? '<div class="cat-gap"></div>' : '') +
+          '<div class="cat-seg misaki" style="width:' + mWidth + '%"></div>' +
+        '</div>' +
+      '</div>';
+    });
+    document.getElementById('catBreakdown').innerHTML = catHtml;
+  }
+
+  // ---------- Rendering: history ----------
+  function renderHistory(){
+    var sorted = state.records.slice().sort(function(a,b){ return b.ts - a.ts; });
+    var html = '';
+    var lastDay = null;
+    sorted.forEach(function(r){
+      var chore = CHORE_MAP[r.choreId];
+      if (!chore) return;
+      var day = startOfDay(r.ts);
+      if (day !== lastDay){
+        html += '<div class="history-day">' + fmtDayLabel(r.ts) + '</div>';
+        lastDay = day;
+      }
+      html += '<div class="history-row">' +
+        '<span class="icon">' + chore.icon + '</span>' +
+        '<span class="who ' + (r.person === '健太' ? 'kenta' : 'misaki') + '"></span>' +
+        '<span class="desc">' + r.person + ' さんが ' + chore.name + ' <span class="room">(' + chore.room + ')</span></span>' +
+        '<span class="time">' + fmtTime(r.ts) + '</span>' +
+        '<span class="pts">+' + chore.weight + 'pt</span>' +
+      '</div>';
+    });
+    document.getElementById('historyList').innerHTML = html || '<p style="color:var(--muted);font-size:13px;">まだ記録がありません。</p>';
+  }
+
+  function renderAll(){
+    renderDashboard();
+    renderHistory();
+  }
+
+  // ---------- Actions ----------
+  function recordTap(choreId, btnEl){
+    var chore = CHORE_MAP[choreId];
+    if (!chore) return;
+    var record = { id:'live-' + Date.now() + '-' + Math.floor(Math.random()*1000), choreId:choreId, person:state.activeUser, ts:Date.now() };
+    state.records.push(record);
+    saveRecords(state.records);
+    renderAll();
+    showToast('🏷️ ' + state.activeUser + 'さんが「' + chore.name + '」を記録しました（+' + chore.weight + 'pt）');
+    if (btnEl){
+      btnEl.classList.add('tapped');
+      setTimeout(function(){ btnEl.classList.remove('tapped'); }, 200);
+    }
+  }
+
+  function showToast(msg){
+    var container = document.getElementById('toastContainer');
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(function(){
+      el.classList.add('out');
+      setTimeout(function(){ el.remove(); }, 250);
+    }, 2500);
+  }
+
+  function setActiveUser(user){
+    state.activeUser = user;
+    localStorage.setItem(USER_KEY, user);
+    updateUserToggleUI();
+  }
+
+  function updateUserToggleUI(){
+    var btns = document.querySelectorAll('#userToggle button');
+    btns.forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-user') === state.activeUser);
+    });
+    document.getElementById('activeUserLabel').textContent = state.activeUser;
+  }
+
+  function resetDemo(){
+    localStorage.removeItem(STORAGE_KEY);
+    state.records = loadRecords();
+    renderAll();
+    showToast('↺ デモデータをリセットしました');
+  }
+
+  // ---------- Init ----------
+  document.getElementById('userToggle').addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    setActiveUser(btn.getAttribute('data-user'));
+  });
+  document.getElementById('resetBtn').addEventListener('click', resetDemo);
+  document.getElementById('isoToggle').addEventListener('change', function(e){
+    document.getElementById('floorGrid').classList.toggle('iso', e.target.checked);
+  });
+
+  renderFloorPlan();
+  updateUserToggleUI();
+  renderAll();
+})();
+</script>
+</body>
+</html>
