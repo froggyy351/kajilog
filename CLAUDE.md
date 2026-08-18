@@ -1,46 +1,50 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このファイルは、このリポジトリで作業するClaude Code (claude.ai/code) に向けたガイダンスです。
 
-## Project overview
+## プロジェクト概要
 
 カジログ (kajilog) — NFCタップ1つで家事実績を記録する、夫婦・同棲カップル向けの家事みえる化アプリ。背景・課題・ユーザーストーリーは `docs/PRD_家事みえる化アプリ.md` を参照。
 
-## Current state
+## 現状
 
-- `frontend/`: Vite + React (PWA via `vite-plugin-pwa`), scaffolded but no app logic yet beyond the Vite template.
-- `backend/`: FastAPI, scaffolded with a single `/api/health` endpoint — no real routes/data model yet.
-- `prototype/index.html` is a static, no-build HTML/CSS/JS mockup used for early design review only. It is not the production frontend and should not be extended as if it were.
+- `frontend/`: Vite + React (PWA、`vite-plugin-pwa`使用)。スキャフォールディング済みだが、Viteテンプレート以上のアプリロジックはまだ無い。
+- `backend/`: FastAPI。`/api/health`エンドポイントのみのスキャフォールディング済み状態で、実際のルーティングやデータモデルはまだ無い。
+- `prototype/index.html` は初期の設計レビュー用に作った、ビルド不要の静的HTML/CSS/JSモックアップ。本番のフロントエンドではないため、これを拡張する形で開発を進めないこと。
 
-## Commands
+## コマンド
 
-Frontend (run from `frontend/`):
-- `npm install` — install dependencies
-- `npm run dev` — dev server (default port 5173)
-- `npm run build` — production build (outputs to `frontend/dist`)
+フロントエンド（`frontend/`で実行）:
+- `npm install` — 依存関係のインストール
+- `npm run dev` — 開発サーバー（デフォルトポート5173）
+- `npm run build` — 本番ビルド（`frontend/dist`に出力）
 - `npm run lint` — oxlint
 
-Backend (run from `backend/`, managed with [uv](https://docs.astral.sh/uv/), not plain venv/pip):
-- `uv sync` — first-time setup / install dependencies (creates `.venv`, reads `uv.lock`)
-- `uv add <package>` — add a new dependency (updates `pyproject.toml` and `uv.lock`)
-- `uv run uvicorn main:app --port 8000 --reload` — dev server
-- No test suite yet.
+バックエンド（`backend/`で実行。素のvenv/pipではなく[uv](https://docs.astral.sh/uv/)で管理）:
+- `uv sync` — 初回セットアップ／依存関係インストール（`.venv`を作成し`uv.lock`を読む）
+- `uv add <package>` — 依存関係の追加（`pyproject.toml`と`uv.lock`を更新）
+- `uv run uvicorn main:app --port 8000 --reload` — 開発サーバー
+- テストスイートはまだ無い。
 
-## Architecture decisions
+## アーキテクチャ決定
 
-Full detail and rationale live in `docs/DesignDoc_家事みえる化アプリ.md`. Summary:
+詳細と理由は `docs/DesignDoc_家事みえる化アプリ.md` を参照。要約:
 
-- **Frontend**: Vite + React, built as a PWA (`vite-plugin-pwa`).
-- **Backend**: Python (FastAPI), deployed as a single Vercel Python serverless function.
-- **Hosting**: Vercel for both frontend and backend, in one project.
-- **Database**: Supabase (Postgres).
-- **Chore recording ("Method B")**: each NFC tag has a static URL (`https://{domain}/t/{tagId}`) written directly onto it as an NDEF URI record (via an app like NFC Tools) — no iOS Shortcuts automation and no native app required. Tapping the tag just opens the URL in Safari. `tagId` is an indirect reference, not the chore name itself, and is resolved server-side, so chore names/weights can change later without rewriting physical tags. "Which chore" is encoded in the tag; "who tapped" is inferred from the device (remembered client-side after the first selection), not from the tag.
+- **フロントエンド**: Vite + React、PWAとしてビルド（`vite-plugin-pwa`）
+- **バックエンド**: Python(FastAPI)。Vercelの単一Pythonサーバーレス関数としてデプロイ
+- **ホスティング**: Vercelに統一（フロント・バックエンドとも同一プロジェクト）
+- **DB**: Supabase(Postgres)
+- **家事記録方式（方法B）**: 各NFCタグに固定URL(`https://{domain}/t/{tagId}`)をNDEF URIレコードとして直接書き込む（NFC Tools等のアプリで実施）。iOSショートカットの自動化もネイティブアプリも不要で、タグにタッチするとSafariでそのURLが開くだけ。`tagId`は家事名そのものではなく間接参照で、サーバー側で解決するため、家事名や重みを変えても物理タグの書き直しは不要。「どの家事か」はタグに、「誰がタップしたか」は端末側（初回選択後にクライアント側で記憶）にそれぞれ持たせる。
 
-## Working with the docs
+## ドキュメントの運用
 
-`docs/DesignDoc_家事みえる化アプリ.md` is a living document with a 決定ログ (decision log) table and an オープンクエスチョン (open questions) section. When a new architecture or tooling decision is made, add it to the decision log with a one-line rationale and update the open questions — don't let decisions live only in chat history.
+`docs/DesignDoc_家事みえる化アプリ.md` は決定ログ（決定ログ表）とオープンクエスチョン（未決事項）を持つ生きたドキュメント。新しいアーキテクチャ・ツール選定の決定をしたら、決定ログに一言添えて追記し、オープンクエスチョンも更新すること。決定事項を会話履歴だけに残さないこと。
 
-## Repo-specific gotchas
+## リポジトリ固有の注意点
 
-- `docs/動画/` holds reference material only (screenshots of the competing app CAJICO, plus a screen recording) and is intentionally excluded from git via `.gitignore`: the screenshots capture real household chore-tracking data, and the recording is ~100MB (near GitHub's per-file limit). Don't `git add -f` these back in.
-- The GitHub repo (`froggyy351/kajilog`) is **public**. Be careful before committing anything that contains real personal/family data beyond what's already in the PRD.
+- `docs/動画/` は参考資料のみ（競合アプリCAJICOのスクリーンショットと操作録画）で、`.gitignore`で意図的にgit管理から除外している。スクリーンショットには実際の家庭の家事記録データが写っており、録画ファイルも約100MB(GitHubの単一ファイル上限に近い)のため。`git add -f`で戻さないこと。
+- GitHubリポジトリ(`froggyy351/kajilog`)は**Public**。PRDに既に含まれる内容以外の、実際の個人・家庭のデータをコミットしないよう注意すること。
+
+## ドキュメント言語
+
+このリポジトリのドキュメント（`*.md`）は日本語で統一する。コード中のコメント・識別子は通常の英語命名で問題ない。
