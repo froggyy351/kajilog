@@ -20,9 +20,10 @@ Frontend (run from `frontend/`):
 - `npm run build` — production build (outputs to `frontend/dist`)
 - `npm run lint` — oxlint
 
-Backend (run from `backend/`, using the `.venv` virtualenv):
-- `python -m venv .venv` then `.venv/Scripts/python.exe -m pip install -r requirements.txt` — first-time setup (Windows)
-- `.venv/Scripts/python.exe -m uvicorn main:app --port 8000 --reload` — dev server
+Backend (run from `backend/`, managed with [uv](https://docs.astral.sh/uv/), not plain venv/pip):
+- `uv sync` — first-time setup / install dependencies (creates `.venv`, reads `uv.lock`)
+- `uv add <package>` — add a new dependency (updates `pyproject.toml` and `uv.lock`)
+- `uv run uvicorn main:app --port 8000 --reload` — dev server
 - No test suite yet.
 
 ## Architecture decisions

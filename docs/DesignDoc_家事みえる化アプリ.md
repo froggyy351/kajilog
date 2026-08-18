@@ -15,6 +15,7 @@
 | 2026-08-18 | ホスティングはVercelに統一（FastAPIもVercelのPythonサーバーレス関数としてデプロイ） | デプロイ先を1つに集約でき、Windows開発機だけで完結できるため |
 | 2026-08-18 | DBはSupabase(Postgres)を採用（Turso等の代替も検討したが見送り） | 管理画面(Studio)から直接データを確認・修正できるため、管理UIがない開発初期段階で扱いやすい |
 | 2026-08-18 | frontend/backendをスキャフォールディングし、ローカルで動作確認済み | Vite+React(PWA)は`npm run build`、FastAPIは`/api/health`が200を返すことを確認。ルート`vercel.json`で`builds`/`routes`によりフロント静的ビルドとPython関数を1プロジェクトにまとめる構成にしたが、実デプロイでの動作は未検証 |
+| 2026-08-18 | バックエンドの依存関係管理はvenv+pipではなくuvを採用 | uvはRust製で高速、`uv.lock`で依存関係を確実に固定できる。pip+venvの完全な代替として現在のデファクトになりつつあるため。`uv run uvicorn main:app`で起動することを確認済み |
 
 ---
 
