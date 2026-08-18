@@ -16,6 +16,7 @@
 | 2026-08-18 | DBはSupabase(Postgres)を採用（Turso等の代替も検討したが見送り） | 管理画面(Studio)から直接データを確認・修正できるため、管理UIがない開発初期段階で扱いやすい |
 | 2026-08-18 | frontend/backendをスキャフォールディングし、ローカルで動作確認済み | Vite+React(PWA)は`npm run build`、FastAPIは`/api/health`が200を返すことを確認。ルート`vercel.json`で`builds`/`routes`によりフロント静的ビルドとPython関数を1プロジェクトにまとめる構成にしたが、実デプロイでの動作は未検証 |
 | 2026-08-18 | バックエンドの依存関係管理はvenv+pipではなくuvを採用 | uvはRust製で高速、`uv.lock`で依存関係を確実に固定できる。pip+venvの完全な代替として現在のデファクトになりつつあるため。`uv run uvicorn main:app`で起動することを確認済み |
+| 2026-08-19 | データモデルをSQLAlchemyで実装（ローカルはSQLite、`DATABASE_URL`でSupabaseへ切替可能） | たたき台だったスキーマを実際に動くコードにし、`/api/chores`で日本語データの読み書きが正しく動くことを確認。全テーブルのIDはUUID文字列とし、tagIdが推測困難になるようにした |
 
 ---
 
@@ -44,7 +45,9 @@
 
 ---
 
-## データモデル（たたき台）
+## データモデル
+
+`backend/models.py`にSQLAlchemyモデルとして実装済み（ローカルは`backend/database.py`経由でSQLite、`DATABASE_URL`環境変数でSupabase(Postgres)に切り替え可能）。`backend/seed.py`でテーブル作成とサンプルデータ投入ができる（`uv run python seed.py`）。IDは全テーブルUUID文字列（tagIdが推測困難な値になるようにするため）。
 
 - **household**（世帯）: id, name
 - **member**（世帯メンバー）: id, household_id, name, icon, color

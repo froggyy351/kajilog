@@ -9,7 +9,7 @@
 ## 現状
 
 - `frontend/`: Vite + React (PWA、`vite-plugin-pwa`使用)。スキャフォールディング済みだが、Viteテンプレート以上のアプリロジックはまだ無い。
-- `backend/`: FastAPI。`/api/health`エンドポイントのみのスキャフォールディング済み状態で、実際のルーティングやデータモデルはまだ無い。
+- `backend/`: FastAPI。データモデル（`models.py`、SQLAlchemy）とローカルSQLite接続（`database.py`）は実装済み。`/api/health`と`/api/chores`のみで、NFCタグ経由の記録エンドポイント（`/t/{tagId}`）はまだ無い。
 - `prototype/index.html` は初期の設計レビュー用に作った、ビルド不要の静的HTML/CSS/JSモックアップ。本番のフロントエンドではないため、これを拡張する形で開発を進めないこと。
 
 ## コマンド
@@ -24,6 +24,7 @@
 - `uv sync` — 初回セットアップ／依存関係インストール（`.venv`を作成し`uv.lock`を読む）
 - `uv add <package>` — 依存関係の追加（`pyproject.toml`と`uv.lock`を更新）
 - `uv run uvicorn main:app --port 8000 --reload` — 開発サーバー
+- `uv run python seed.py` — テーブル作成＋サンプルデータ投入（ローカルSQLite `backend/kajilog.db`。git管理外）
 - テストスイートはまだ無い。
 
 ## アーキテクチャ決定
