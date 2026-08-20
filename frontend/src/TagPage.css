@@ -1,0 +1,49 @@
+.tag-page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  gap: 16px;
+}
+
+.member-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.member-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.member-button .icon {
+  font-size: 24px;
+}
+
+.confirmation {
+  font-size: 18px;
+}
+
+.change-member {
+  background: none;
+  border: none;
+  color: var(--text, #6b6375);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
