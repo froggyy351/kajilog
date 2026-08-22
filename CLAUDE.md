@@ -8,8 +8,8 @@
 
 ## 現状
 
-- `frontend/`: Vite + React (PWA、`vite-plugin-pwa`使用)。`/t/:tagId`ルート（`src/TagPage.jsx`、react-router-dom）で、誰がタップしたか判定→記録→確認画面→取り消しの一連の流れを実装済み。ダッシュボード・履歴・清算などの画面はまだ無い。
-- `backend/`: FastAPI。データモデル（`models.py`、SQLAlchemy）とローカルSQLite接続（`database.py`）、NFCタップ記録API（`GET /api/tags/{tagId}`, `POST /api/records`, `POST /api/records/{id}/undo`）を実装済み。
+- `frontend/`: Vite + React (PWA、`vite-plugin-pwa`使用)。`/`はメンバー別の累計ポイントを棒グラフで見せるダッシュボード（`src/App.jsx`）、`/t/:tagId`ルート（`src/TagPage.jsx`、react-router-dom）で、誰がタップしたか判定→記録→確認画面→取り消しの一連の流れを実装済み。履歴・清算などの画面はまだ無い。
+- `backend/`: FastAPI。データモデル（`models.py`、SQLAlchemy）とローカルSQLite接続（`database.py`）、NFCタップ記録API（`GET /api/tags/{tagId}`, `POST /api/records`, `POST /api/records/{id}/undo`）、ダッシュボード集計API（`GET /api/dashboard`）を実装済み。
 - `prototype/index.html` は初期の設計レビュー用に作った、ビルド不要の静的HTML/CSS/JSモックアップ。本番のフロントエンドではないため、これを拡張する形で開発を進めないこと。
 
 ## コマンド

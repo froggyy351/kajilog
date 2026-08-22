@@ -105,3 +105,31 @@ def undo_record(record_id: str):
         return {"record_id": record.id, "undone_at": record.undone_at.isoformat()}
     finally:
         session.close()
+
+
+@app.get("/api/dashboard")
+def dashboard():
+    """世帯ごとのメンバー別ポイント集計。世帯は1つのみ運用する前提の現段階ではhousehold_idの絞り込みは省略している。"""
+    session = SessionLocal()
+    try:
+        members = session.query(Member).all()
+        summary = []
+        for m in members:
+            records = (
+                session.query(Record)
+                .filter(Record.member_id == m.id, Record.undone_at.is_(None))
+                .all()
+            )
+            summary.append(
+                {
+                    "id": m.id,
+                    "name": m.name,
+                    "icon": m.icon,
+                    "color": m.color,
+                    "total_points": sum(r.weight_snapshot for r in records),
+                    "record_count": len(records),
+                }
+            )
+        return {"members": summary}
+    finally:
+        session.close()
